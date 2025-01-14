@@ -15,10 +15,11 @@ def get_ip():
 
 
 ip = get_ip()
-port = 8000
+port = 8001
 services_prefix = "/core"
 verbose_log = True
 
 arcade = "Monkey Business"
-paseli = 5730
+enable_paseli = False
+paseli = 3000
 maintenance_mode = False

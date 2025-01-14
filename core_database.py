@@ -1,7 +1,6 @@
-from tinydb import TinyDB
+from pymongo import MongoClient
 
-db = TinyDB("db.json", indent=2, encoding="utf-8", ensure_ascii=False)
-
+client = MongoClient("localhost", 27017)
 
 def get_db():
-    return db
+    return client.monkeydb

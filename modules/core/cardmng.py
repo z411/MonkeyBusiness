@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request, Response
-from tinydb import Query, where
 
 from core_common import core_process_request, core_prepare_response, E
 from core_database import get_db
@@ -24,7 +23,7 @@ def get_target_table(game_id):
 
 def get_profile(game_id, cid):
     target_table = get_target_table(game_id)
-    profile = get_db().table(target_table).get(where("card") == cid)
+    profile = get_db()[target_table].find_one({"card": cid})
 
     if profile is None:
         profile = {
@@ -50,7 +49,7 @@ def create_profile(game_id, game_version, cid, pin):
 
     profile["pin"] = pin
 
-    get_db().table(target_table).upsert(profile, where("card") == cid)
+    get_db()[target_table].replace_one({"card": cid}, profile, upsert=True)
 
 
 @router.post("/{gameinfo}/cardmng/authpass")

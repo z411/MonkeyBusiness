@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, Response, File, UploadFile
 
 from core_common import core_process_request, core_prepare_response, E
 
-from tinydb import Query, where
 from core_database import get_db
 from pydantic import BaseModel
 
@@ -47,24 +46,24 @@ class DDR_Profile_Version_Items(BaseModel):
 
 @router.get("/profiles")
 async def ddr_profiles():
-    return get_db().table("ddr_profile").all()
+    return get_db()["ddr_profile"].find()
 
 
 @router.get("/profiles/{ddr_id}")
 async def ddr_profile_id(ddr_id: str):
     ddr_id = int("".join([i for i in ddr_id if i.isnumeric()]))
-    return get_db().table("ddr_profile").get(where("ddr_id") == ddr_id)
+    return get_db()["ddr_profile"].find_one({"ddr_id": ddr_id})
 
 
 @router.patch("/profiles/{ddr_id}")
 async def ddr_profile_id_patch(ddr_id: str, item: DDR_Profile_Main_Items):
     ddr_id = int("".join([i for i in ddr_id if i.isnumeric()]))
-    profile = get_db().table("ddr_profile").get(where("ddr_id") == ddr_id)
+    profile = get_db()["ddr_profile"].find_one({"ddr_id": ddr_id})
 
     profile["card"] = item.card
     profile["pin"] = item.pin
 
-    get_db().table("ddr_profile").upsert(profile, where("ddr_id") == ddr_id)
+    get_db()["ddr_profile"].replace_one({"ddr_id": ddr_id}, profile, upsert=True)
     return Response(status_code=204)
 
 
@@ -73,7 +72,7 @@ async def ddr_profile_id_version_patch(
     ddr_id: str, version: int, item: DDR_Profile_Version_Items
 ):
     ddr_id = int("".join([i for i in ddr_id if i.isnumeric()]))
-    profile = get_db().table("ddr_profile").get(where("ddr_id") == ddr_id)
+    profile = get_db()["ddr_profile"].find_one({"ddr_id": ddr_id})
     game_profile = profile["version"].get(str(version), {})
 
     if version >= 19:
@@ -94,7 +93,7 @@ async def ddr_profile_id_version_patch(
         game_profile["rival_3_ddr_id"] = item.rival_3_ddr_id
 
     profile["version"][str(version)] = game_profile
-    get_db().table("ddr_profile").upsert(profile, where("ddr_id") == ddr_id)
+    get_db()["ddr_profile"].replace_one({"ddr_id": ddr_id}, profile, upsert=True)
     return Response(status_code=204)
 
 
@@ -117,40 +116,39 @@ async def ddr_card_to_profile(card: str):
         card = "".join([c for c in card if c in conv.valid_characters])
         uid = conv.to_uid(card)
         kid = card
-    profile = get_db().table("ddr_profile").get(where("card") == uid)
+    profile = get_db()["ddr_profile"].find_one({"card": uid})
     return profile
 
 
 @router.get("/scores")
 async def ddr_scores():
-    return get_db().table("ddr_scores").all()
+    return get_db()["ddr_scores"].find()
 
 
 @router.get("/scores/{ddr_id}")
 async def ddr_scores_id(ddr_id: str):
     ddr_id = int("".join([i for i in ddr_id if i.isnumeric()]))
-    return get_db().table("ddr_scores").search((where("ddr_id") == ddr_id))
-
+    return get_db()["ddr_scores"].find({"ddr_id": ddr_id})
 
 @router.get("/scores_best")
 async def ddr_scores_best():
-    return get_db().table("ddr_scores_best").all()
+    return get_db()["ddr_scores_best"].find()
 
 
 @router.get("/scores_best/{ddr_id}")
 async def ddr_scores_best_id(ddr_id: str):
     ddr_id = int("".join([i for i in ddr_id if i.isnumeric()]))
-    return get_db().table("ddr_scores_best").search((where("ddr_id") == ddr_id))
+    return get_db()["ddr_scores_best"].find({"ddr_id": ddr_id})
 
 
 @router.get("/mcode/{mcode}/all")
 async def ddr_scores_id(mcode: int):
-    return get_db().table("ddr_scores").search((where("mcode") == mcode))
+    return get_db()["ddr_scores"].find({"mcode": mcode})
 
 
 @router.get("/mcode/{mcode}/best")
 async def ddr_scores_id_best(mcode: int):
-    return get_db().table("ddr_scores_best").search((where("mcode") == mcode))
+    return get_db()["ddr_scores_best"].find({"mcode": mcode})
 
 
 class ARC:

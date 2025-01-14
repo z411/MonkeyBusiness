@@ -2,6 +2,6 @@ fastapi
 kbinxml>=2.0
 pycryptodomex
 python-multipart
-tinydb
+pymongo
 ujson
 uvicorn[standard]

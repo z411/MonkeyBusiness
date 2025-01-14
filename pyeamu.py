@@ -43,6 +43,7 @@ for s in (
     "services_prefix",
     "verbose_log",
     "arcade",
+    "enable_paseli",
     "paseli",
     "maintenance_mode",
 ):
@@ -173,6 +174,10 @@ async def services_get(
         )
     )
     services["ntp"] = urlunparse(("ntp", "pool.ntp.org", "/", None, None, None))
+
+    # Disable PASELI if 0
+    if not config.enable_paseli:
+        del services["eacoin"]
 
     response = E.response(
         E.services(
