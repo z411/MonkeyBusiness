@@ -8,6 +8,8 @@ from fastapi import APIRouter, Request, Response
 from core_common import core_process_request, core_prepare_response, E
 from core_database import get_db
 
+from bson import ObjectId
+from pymongo.collection import ReturnDocument
 from base64 import b64decode, b64encode
 
 router = APIRouter(prefix="/local2", tags=["local2"])
@@ -217,7 +219,7 @@ async def playerdata_2_usergamedata_advanced(request: Request):
 
     elif mode == "ghostload":
         ghostid = int(data.find("ghostid").text)
-        record = db["ddr_scores"].find_one({"_id": ghostid})
+        record = db["ddr_scores"].find_one({"id": ghostid})
 
         response = E.response(
             E.playerdata_2(
@@ -283,8 +285,15 @@ async def playerdata_2_usergamedata_advanced(request: Request):
                     opt_judgepriority = int(n.find("opt_judgepriority").text)
                     opt_timing = int(n.find("opt_timing").text)
 
+            new_id = int(db["ddr_seqs"].find_one_and_update(
+                {'_id': 'scores'},
+                {'$inc': {'seq': 1}},
+                return_document=ReturnDocument.AFTER,
+                upsert=True).get('seq', 0))
+
             db["ddr_scores"].insert_one(
                 {
+                    "id": new_id,
                     "timestamp": timestamp,
                     "pcbid": pcbid,
                     "shoparea": shoparea,
@@ -358,7 +367,7 @@ async def playerdata_2_usergamedata_advanced(request: Request):
                 {"difficulty": difficulty},
                 {"score": max(score, best.get("score", score))},
             ]})
-            best_score_data["ghostid"] = ghostid["_id"]
+            best_score_data["ghostid"] = ghostid["id"]
 
             db["ddr_scores_best"].replace_one({"$and": [
                 {"ddr_id": ddr_id},
@@ -445,7 +454,7 @@ async def playerdata_2_usergamedata_advanced(request: Request):
                         "lamp": record["lamp"],
                         "score": score,
                         "exscore": record["exscore"],
-                        "ghostid": record["_id"],
+                        "ghostid": record["id"],
                     }
             scores = list(all_scores.values())
 
@@ -473,7 +482,7 @@ async def playerdata_2_usergamedata_advanced(request: Request):
                         "lamp": record["lamp"],
                         "score": score,
                         "exscore": record["exscore"],
-                        "ghostid": record["_id"],
+                        "ghostid": record["id"],
                     }
             scores = list(all_scores.values())
 
@@ -500,7 +509,7 @@ async def playerdata_2_usergamedata_advanced(request: Request):
                         "lamp": record["lamp"],
                         "score": score,
                         "exscore": record["exscore"],
-                        "ghostid": record["_id"],
+                        "ghostid": record["id"],
                     }
             scores = list(all_scores.values())
 

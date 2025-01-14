@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ver="3.12"
+ver="3.11"
 py="python$ver"
 
 if ! command -v $py &> /dev/null
